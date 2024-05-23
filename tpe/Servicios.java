@@ -14,17 +14,43 @@ import tpe.utils.CSVReader;
  */
 public class Servicios {
 	private Map<String, Tarea> tareas = new HashMap<>();
+	private LinkedList<Tarea> tareasCriticas = new LinkedList<>();
+	private LinkedList<Tarea> tareasNoCriticas = new LinkedList<>();
 
 	/*
-     Complejidad computacional: O(2n) ó O(n) (preguntar)
+     Complejidad computacional: O(n)
      */
 	public Servicios(String pathProcesadores, String pathTareas)
 	{
 		CSVReader reader = new CSVReader();
 		reader.readProcessors(pathProcesadores);
 		this.tareas = reader.readTasks(pathTareas);
+		this.tareasCriticas = getTareasCriticas(this.tareas, true);
+		this.tareasNoCriticas = getTareasCriticas(this.tareas, false);
 	}
 	
+	public LinkedList<Tarea> getTareasCriticas(Map<String, Tarea> listaTareas, boolean esCritica) {
+		LinkedList<Tarea> resultado = new LinkedList<>();
+
+		if (esCritica) {
+			for (String id : listaTareas.keySet()) {
+				Tarea tarea = listaTareas.get(id);
+				if (tarea.isEs_critica()) {
+					resultado.add(tarea);
+				}
+			}
+		} else {
+			for (String id : listaTareas.keySet()) {
+				Tarea tarea = listaTareas.get(id);
+				if (!tarea.isEs_critica()) {
+					resultado.add(tarea);
+				}
+			}
+		}
+
+		return resultado;
+	}
+
 	/*
      Complejidad computacional: O(1)
     */
@@ -33,30 +59,11 @@ public class Servicios {
 	}
     
     /*
-	  Complejidad computacional: O(n)
+	  Complejidad computacional: O(1)
      */
 	public List<Tarea> servicio2(boolean esCritica) {
-		List<Tarea> resultado = new LinkedList<>();
-
-		if (esCritica) {
-			for (String id : tareas.keySet()) {
-				Tarea tarea = tareas.get(id);
-				boolean cumple = tarea.isEs_critica();
-				if (cumple) {
-					resultado.add(tarea);
-				}
-			}
-		} else {
-			for (String id : tareas.keySet()) {
-				Tarea tarea = tareas.get(id);
-				boolean cumple = tarea.isEs_critica();
-				if (!cumple) {
-					resultado.add(tarea);
-				}
-			}
-		}
-
-		return resultado;
+		if (esCritica) return this.tareasCriticas;
+		return this.tareasNoCriticas;
 	}
 
     /*

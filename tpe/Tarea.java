@@ -38,4 +38,9 @@ public class Tarea {
     public int getNivel_prioridad() {
         return this.nivel_prioridad;
     }
+
+    @Override
+    public String toString() {
+        return this.id_tarea;
+    }
 }
