@@ -12,4 +12,25 @@ public class Procesador {
         this.esta_refrigerado = esta_refrigerado;
         this.año_funcionamiento = año_funcionamiento;
     }
+
+    public String getId_procesador() {
+        return this.id_procesador;
+    }
+
+    public String getCodigo_procesador() {
+        return this.codigo_procesador;
+    }
+
+    public boolean isEsta_refrigerado() {
+        return this.esta_refrigerado;
+    }
+
+    public int getAño_funcionamiento() {
+        return this.año_funcionamiento;
+    }
+
+    @Override
+    public String toString() {
+        return this.id_procesador;
+    }
 }
