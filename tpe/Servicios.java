@@ -88,16 +88,21 @@ public class Servicios {
 		return resultado;
 	}
 
-	public LinkedList<Procesador> greedy() {
+	public LinkedList<Procesador> greedy(int criticasMAX, int tiempoMAX) {
+		
 		while (!this.tareas.isEmpty()) {
 			// Selecciona tarea con mayor tiempo de ejecución.
 			Tarea t = this.seleccionarTarea();
 			// Selecciona procesador con menor tiempo de ejecución acumulado.
 			Procesador p = this.seleccionarProcesador();
 			// Asigna la tareas seleccionada al procesador seleccionado.
-			p.asignarTarea(t);
-			// Se elimina la tarea de la lista de tareas.
-			this.tareas.remove(t.getId_tarea());
+			boolean asignada = p.asignarTarea(t, criticasMAX, tiempoMAX);
+			if (!asignada) {
+				System.out.println("No se encontró solución valida");
+				return new LinkedList<Procesador> ();
+			} 
+			// Se elimina la tarea de la lista de tareas. 
+			this.tareas.remove(t.getId_tarea());	
 		}
 
 		return this.procesadores;
@@ -106,11 +111,11 @@ public class Servicios {
 	public Procesador seleccionarProcesador() {
 		// Se obtiene el primer procesador.
 		Procesador resultado = procesadores.getFirst();
-		for (Procesador procesador : procesadores) {
+		for (Procesador p : procesadores) {
 			// Si el tiempo de  ejecucion del actual procesador es menor al del resultado
 			// resultado se vuelve procesador actual.
-			if (procesador.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) {
-				resultado = procesador;
+			if (p.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) {
+				resultado = p;
 			}
 		}
 
