@@ -89,44 +89,40 @@ public class Servicios {
 	}
 
 	public LinkedList<Procesador> greedy() {
-		// Guarda el mayor el tiempo de ejecucion (procesador con mayor tiempo de ejecucion)
-		int mayorTiempoEjecucion = 0;
-
-		// Si hay un solo procesador se le asigna todas las tareas.
-		if (procesadores.size() == 1) {
-			Procesador p = procesadores.get(0);
-			while (!tareas.isEmpty()) {
-				Tarea t = this.seleccionar();
-				p.asignarTarea(t);
-				this.tareas.remove(t.getId_tarea());
-			}
-		}
 		while (!this.tareas.isEmpty()) {
-			for (Procesador procesador : procesadores) {
-				Tarea t = this.seleccionar(); // Selecciona tarea de mayor tiempo de ejecucion
-				if(procesador.estaVacio()) {
-					// Si el procesador esta vacio se le asigna la tarea.
-					procesador.asignarTarea(t);
-					this.tareas.remove(t.getId_tarea());
-					if (procesador.getTiempo_ejecucion() > mayorTiempoEjecucion) {
-						mayorTiempoEjecucion = procesador.getTiempo_ejecucion();
-					}
-				} else {
-					// En caso contrario se asigna al procesador de menor tiempo de ejecucion
-					if (procesador.getTiempo_ejecucion() < mayorTiempoEjecucion) {
-						procesador.asignarTarea(t);
-						this.tareas.remove(t.getId_tarea());
-					}
-				}
-			}
+			// Selecciona tarea con mayor tiempo de ejecución.
+			Tarea t = this.seleccionarTarea();
+			// Selecciona procesador con menor tiempo de ejecución acumulado.
+			Procesador p = this.seleccionarProcesador();
+			// Asigna la tareas seleccionada al procesador seleccionado.
+			p.asignarTarea(t);
+			// Se elimina la tarea de la lista de tareas.
+			this.tareas.remove(t.getId_tarea());
 		}
 
 		return this.procesadores;
 	}
 
-	public Tarea seleccionar() {
-		Tarea resultado = new Tarea(null, null, 0, false, 0);
+	public Procesador seleccionarProcesador() {
+		// Se obtiene el primer procesador.
+		Procesador resultado = procesadores.getFirst();
+		for (Procesador procesador : procesadores) {
+			// Si el tiempo de  ejecucion del actual procesador es menor al del resultado
+			// resultado se vuelve procesador actual.
+			if (procesador.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) {
+				resultado = procesador;
+			}
+		}
+
+		return resultado;
+	}
+
+	public Tarea seleccionarTarea() {
+		String idPrimeraTarea = tareas.keySet().iterator().next();
+		Tarea resultado = tareas.get(idPrimeraTarea);
 		for (String id : tareas.keySet()) {
+			// Si el tiempo de  ejecucion de la actual tarea es mayor al del resultado
+			// resultado se vuelve tarea actual.
 			Tarea t = tareas.get(id);
 			if (t.getTiempo_ejecucion() > resultado.getTiempo_ejecucion()) {
 				resultado = t;

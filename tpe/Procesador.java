@@ -40,6 +40,10 @@ public class Procesador {
     }
 
     public void asignarTarea(Tarea tarea) {
+        // Preguntar si es una posible solucion para el punto
+        // de que un procesador no puede ejecutar dos tareas criticas consecutivas
+        // y que se hace con las q sobran
+        // if (tarea.isEs_critica() && !this.tareasAsignadas.isEmpty() && this.tareasAsignadas.getLast().isEs_critica()) return;
         this.tareasAsignadas.add(tarea);
         this.tiempo_ejecucion += tarea.getTiempo_ejecucion();
     }
