@@ -16,6 +16,7 @@ public class Servicios {
 	private Map<String, Tarea> tareas = new HashMap<>();
 	private LinkedList<Tarea> tareasCriticas = new LinkedList<>();
 	private LinkedList<Tarea> tareasNoCriticas = new LinkedList<>();
+	private LinkedList<Procesador> procesadores = new LinkedList<>();
 
 	/*
      Complejidad computacional: O(n)
@@ -23,7 +24,7 @@ public class Servicios {
 	public Servicios(String pathProcesadores, String pathTareas)
 	{
 		CSVReader reader = new CSVReader();
-		reader.readProcessors(pathProcesadores);
+		this.procesadores = reader.readProcessors(pathProcesadores);
 		this.tareas = reader.readTasks(pathTareas);
 		this.tareasCriticas = getTareasCriticas(this.tareas, true);
 		this.tareasNoCriticas = getTareasCriticas(this.tareas, false);
@@ -81,6 +82,54 @@ public class Servicios {
 			Tarea tarea = tareas.get(id);
 			if (tarea.getNivel_prioridad() >= prioridadInferior && tarea.getNivel_prioridad() <= prioridadSuperior) {
 				resultado.add(tarea);
+			}
+		}
+
+		return resultado;
+	}
+
+	public LinkedList<Procesador> greedy() {
+		// Guarda el mayor el tiempo de ejecucion (procesador con mayor tiempo de ejecucion)
+		int mayorTiempoEjecucion = 0;
+
+		// Si hay un solo procesador se le asigna todas las tareas.
+		if (procesadores.size() == 1) {
+			Procesador p = procesadores.get(0);
+			while (!tareas.isEmpty()) {
+				Tarea t = this.seleccionar();
+				p.asignarTarea(t);
+				this.tareas.remove(t.getId_tarea());
+			}
+		}
+		while (!this.tareas.isEmpty()) {
+			for (Procesador procesador : procesadores) {
+				Tarea t = this.seleccionar(); // Selecciona tarea de mayor tiempo de ejecucion
+				if(procesador.estaVacio()) {
+					// Si el procesador esta vacio se le asigna la tarea.
+					procesador.asignarTarea(t);
+					this.tareas.remove(t.getId_tarea());
+					if (procesador.getTiempo_ejecucion() > mayorTiempoEjecucion) {
+						mayorTiempoEjecucion = procesador.getTiempo_ejecucion();
+					}
+				} else {
+					// En caso contrario se asigna al procesador de menor tiempo de ejecucion
+					if (procesador.getTiempo_ejecucion() < mayorTiempoEjecucion) {
+						procesador.asignarTarea(t);
+						this.tareas.remove(t.getId_tarea());
+					}
+				}
+			}
+		}
+
+		return this.procesadores;
+	}
+
+	public Tarea seleccionar() {
+		Tarea resultado = new Tarea(null, null, 0, false, 0);
+		for (String id : tareas.keySet()) {
+			Tarea t = tareas.get(id);
+			if (t.getTiempo_ejecucion() > resultado.getTiempo_ejecucion()) {
+				resultado = t;
 			}
 		}
 

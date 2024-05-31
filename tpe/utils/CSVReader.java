@@ -6,6 +6,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.Map;
 
 import tpe.Tarea;
@@ -37,11 +38,12 @@ public class CSVReader {
 		return tareas;
 	}
 	
-	public void readProcessors(String processorPath) {
+	public LinkedList<Procesador> readProcessors(String processorPath) {
 		// Obtengo una lista con las lineas del archivo
 		// lines.get(0) tiene la primer linea del archivo
 		// lines.get(1) tiene la segunda linea del archivo... y así
 		ArrayList<String[]> lines = this.readContent(processorPath);
+		LinkedList<Procesador> procesadores = new LinkedList<>();
 		
 		for (String[] line: lines) {
 			// Cada linea es un arreglo de Strings, donde cada posicion guarda un elemento
@@ -50,9 +52,10 @@ public class CSVReader {
 			Boolean refrigerado = Boolean.parseBoolean(line[2].trim());
 			Integer anio = Integer.parseInt(line[3].trim());
 			// Aca instanciar lo que necesiten en base a los datos leidos
-			new Procesador(id, codigo, refrigerado, anio);
+			procesadores.add(new Procesador(id, codigo, refrigerado, anio));
 		}
 		
+		return procesadores;
 	}
 
 	private ArrayList<String[]> readContent(String path) {
