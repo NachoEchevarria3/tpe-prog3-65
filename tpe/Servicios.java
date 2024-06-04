@@ -1,9 +1,12 @@
 package tpe;
 
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 
 import tpe.utils.CSVReader;
 
@@ -88,21 +91,38 @@ public class Servicios {
 		return resultado;
 	}
 
+	private LinkedList<Tarea> ordenarTareas() {
+		LinkedList<Tarea> listaTareas = new LinkedList<>();
+		for (Map.Entry<String, Tarea> tarea : tareas.entrySet()) {
+			listaTareas.add(tarea.getValue());
+		}
+		Collections.sort(listaTareas, new ComparadorTareas());
+		return listaTareas;
+	}
+
+	/*
+		La estrategia que pensamos para la solución Greedy del problema fue la siguiente:
+			Como primer paso se ordenaron las tareas de mayor a menor tiempo de ejecución, y
+			luego se asigno cada una al procesador con menor tiempo de ejecución acumulado
+			en ese momento. En la primer iteración, se van a llenar todos los procesadores
+			con al menos una tarea en caso de que haya más tareas que procesadores.
+	*/
 	public LinkedList<Procesador> greedy(int criticasMAX, int tiempoMAX) {
-		
-		while (!this.tareas.isEmpty()) {
-			// Selecciona tarea con mayor tiempo de ejecución.
-			Tarea t = this.seleccionarTarea();
+		// Ordena Tareas por tiempo de ejecución de mayor a menor.
+		LinkedList<Tarea> tareasOrdenadas = this.ordenarTareas();
+		while (!tareasOrdenadas.isEmpty()) {
+			// Selecciona primer tarea.
+			Tarea t = tareasOrdenadas.getFirst();
 			// Selecciona procesador con menor tiempo de ejecución acumulado.
 			Procesador p = this.seleccionarProcesador();
 			// Asigna la tareas seleccionada al procesador seleccionado.
 			boolean asignada = p.asignarTarea(t, criticasMAX, tiempoMAX);
 			if (!asignada) {
 				System.out.println("No se encontró solución valida");
-				return new LinkedList<Procesador> ();
+				return new LinkedList<Procesador>();
 			} 
 			// Se elimina la tarea de la lista de tareas. 
-			this.tareas.remove(t.getId_tarea());	
+			tareasOrdenadas.removeFirst();
 		}
 
 		return this.procesadores;
@@ -116,21 +136,6 @@ public class Servicios {
 			// resultado se vuelve procesador actual.
 			if (p.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) {
 				resultado = p;
-			}
-		}
-
-		return resultado;
-	}
-
-	public Tarea seleccionarTarea() {
-		String idPrimeraTarea = tareas.keySet().iterator().next();
-		Tarea resultado = tareas.get(idPrimeraTarea);
-		for (String id : tareas.keySet()) {
-			// Si el tiempo de  ejecucion de la actual tarea es mayor al del resultado
-			// resultado se vuelve tarea actual.
-			Tarea t = tareas.get(id);
-			if (t.getTiempo_ejecucion() > resultado.getTiempo_ejecucion()) {
-				resultado = t;
 			}
 		}
 

@@ -41,35 +41,12 @@ public class Procesador {
     }
 
     public boolean asignarTarea(Tarea tarea, int criticasMAX, int tiempoMAX) {
-        if (!this.esta_refrigerado && (this.getTiempo_ejecucion() + tarea.getTiempo_ejecucion() < tiempoMAX )) {
-            if(tarea.isEs_critica() && cant_criticas < criticasMAX){
-                this.tareasAsignadas.add(tarea);
-                cant_criticas++;
-                this.tiempo_ejecucion += tarea.getTiempo_ejecucion();
-                return true;
-            } else if (tarea.isEs_critica() && cant_criticas >= criticasMAX){
-                return false;
-            }
-            this.tareasAsignadas.add(tarea);
-            this.tiempo_ejecucion += tarea.getTiempo_ejecucion();
-                return true; 
-        } else if (!this.esta_refrigerado && (this.getTiempo_ejecucion() + tarea.getTiempo_ejecucion() >= tiempoMAX )) {
-            return false;
-        }else{
-            if(tarea.isEs_critica() && cant_criticas < criticasMAX){
-                this.tareasAsignadas.add(tarea);
-                cant_criticas++;
-                this.tiempo_ejecucion += tarea.getTiempo_ejecucion();
-                return true;
-            } else if (tarea.isEs_critica() && cant_criticas >= criticasMAX){
-                return false;
-            }
-            this.tareasAsignadas.add(tarea);
-            this.tiempo_ejecucion += tarea.getTiempo_ejecucion();
-                return true; 
-        }
-        
-        
+        if (tarea.isEs_critica() && this.cant_criticas == criticasMAX) return false;
+        if (!this.isEsta_refrigerado() && (this.getTiempo_ejecucion() + tarea.getTiempo_ejecucion()) > tiempoMAX) return false;
+        this.tareasAsignadas.add(tarea);
+        this.tiempo_ejecucion += tarea.getTiempo_ejecucion();
+        if (tarea.isEs_critica()) cant_criticas++;
+        return true;
     }
 
     public LinkedList<Tarea> getTareasAsignadas() {
