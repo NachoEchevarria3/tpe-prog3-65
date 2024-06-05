@@ -1,13 +1,10 @@
 package tpe;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.TreeMap;
-
 import tpe.utils.CSVReader;
 
 /**
@@ -20,6 +17,8 @@ public class Servicios {
 	private LinkedList<Tarea> tareasCriticas = new LinkedList<>();
 	private LinkedList<Tarea> tareasNoCriticas = new LinkedList<>();
 	private LinkedList<Procesador> procesadores = new LinkedList<>();
+	private int cantCandidatos = 0;
+	private int tiempoEjecucionMAX = 0;
 
 	/*
      Complejidad computacional: O(n)
@@ -119,10 +118,12 @@ public class Servicios {
 			boolean asignada = p.asignarTarea(t, criticasMAX, tiempoMAX);
 			if (!asignada) {
 				System.out.println("No se encontró solución valida");
+				tiempoEjecucionMAX = 0;
 				return new LinkedList<Procesador>();
 			} 
 			// Se elimina la tarea de la lista de tareas. 
 			tareasOrdenadas.removeFirst();
+			tiempoEjecucionMAX = p.getTiempo_ejecucion();
 		}
 
 		return this.procesadores;
@@ -132,6 +133,7 @@ public class Servicios {
 		// Se obtiene el primer procesador.
 		Procesador resultado = procesadores.getFirst();
 		for (Procesador p : procesadores) {
+			cantCandidatos++;
 			// Si el tiempo de  ejecucion del actual procesador es menor al del resultado
 			// resultado se vuelve procesador actual.
 			if (p.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) {
@@ -141,4 +143,13 @@ public class Servicios {
 
 		return resultado;
 	}
+
+	public int getTiempoEjecucionMAX() {
+		return tiempoEjecucionMAX;
+	}
+
+	public int getCantCandidatos() {
+		return cantCandidatos;
+	}
+
 }
