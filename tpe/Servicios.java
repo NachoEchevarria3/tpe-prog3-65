@@ -18,8 +18,8 @@ public class Servicios {
 	private LinkedList<Tarea> tareasCriticas = new LinkedList<>();
 	private LinkedList<Tarea> tareasNoCriticas = new LinkedList<>();
 	private LinkedList<Procesador> procesadores = new LinkedList<>();
-	private int cantCandidatosBacktracking = 0;
-	private int cantCandidatosGreedy = 0;
+	private int cantEstados = 0;
+	private int cantCandidatos = 0;
 	private int mejorTiempoEjecBacktracking = Integer.MAX_VALUE;
 
 	/*
@@ -100,14 +100,6 @@ public class Servicios {
 		return listaTareas;
 	}
 
-	public int getCantCandidatosBacktracking() {
-		return cantCandidatosBacktracking;
-	}
-
-	public int getCantCandidatosGreedy() {
-		return cantCandidatosGreedy;
-	}
-
 	/* 
 		BACKTRACKING
 	*/
@@ -120,8 +112,10 @@ public class Servicios {
 	}
 
 	private void backtracking(LinkedList<Procesador> solucionActual, LinkedList<Procesador> mejorSolucion, int indexTarea, LinkedList<Tarea> tareasAsignar, int criticasMAX, int tiempoMAX) {
+		cantEstados++;
 		if (indexTarea == tareasAsignar.size()) {
 			int maxTiempoEjecucionActual = obtenerMaxTiempoEjecucion(solucionActual);
+			System.out.println(maxTiempoEjecucionActual < mejorTiempoEjecBacktracking);
 			if (maxTiempoEjecucionActual < mejorTiempoEjecBacktracking) {
 				mejorTiempoEjecBacktracking = maxTiempoEjecucionActual;
 				copiarSolucion(solucionActual, mejorSolucion, criticasMAX, tiempoMAX);
@@ -131,9 +125,11 @@ public class Servicios {
 
 		Tarea tareaActual = tareasAsignar.get(indexTarea);
 		for (Procesador procesador : solucionActual) {
-			procesador.asignarTarea(tareaActual, criticasMAX, tiempoMAX);
-			backtracking(solucionActual, mejorSolucion, indexTarea + 1, tareasAsignar, criticasMAX, tiempoMAX);
-			procesador.eliminarTarea(tareaActual);
+			boolean asignada = procesador.asignarTarea(tareaActual, criticasMAX, tiempoMAX);
+			if (asignada) {
+				backtracking(solucionActual, mejorSolucion, indexTarea + 1, tareasAsignar, criticasMAX, tiempoMAX);
+				procesador.eliminarTarea(tareaActual);
+			}
 		}
 		return;
 	}
@@ -197,7 +193,7 @@ public class Servicios {
 		// Se obtiene el primer procesador.
 		Procesador resultado = procesadores.getFirst();
 		for (Procesador p : procesadores) {
-			cantCandidatosGreedy++;
+			cantCandidatos++;
 			// Si el tiempo de  ejecucion del actual procesador es menor al del resultado
 			// resultado se vuelve procesador actual.
 			if (p.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) {
@@ -211,4 +207,13 @@ public class Servicios {
 	public int getMejorTiempoEjecGreedy() {
 		return obtenerMaxTiempoEjecucion(this.procesadores);
 	}
+
+	public int getCantCandidatos() {
+		return cantCandidatos;
+	}
+
+	public int getCantEstados() {
+		return cantEstados;
+	}
+
 }
