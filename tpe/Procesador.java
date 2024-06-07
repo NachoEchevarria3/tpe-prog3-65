@@ -49,6 +49,16 @@ public class Procesador {
         return true;
     }
 
+    public void eliminarTarea(Tarea tarea) {
+        if (tareasAsignadas.isEmpty()) return;
+        for (Tarea t : tareasAsignadas) {
+            if(t.getId_tarea() == tarea.getId_tarea()) {
+                tareasAsignadas.remove(t);
+                this.tiempo_ejecucion -= tarea.getTiempo_ejecucion();
+            }
+        }
+    }
+
     public LinkedList<Tarea> getTareasAsignadas() {
         return this.tareasAsignadas;
     }
@@ -60,7 +70,6 @@ public class Procesador {
     public int getCant_criticas() {
         return cant_criticas;
     }
-
 
     @Override
     public String toString() {
