@@ -108,6 +108,7 @@ public class Servicios {
 		LinkedList<Procesador> mejorSolucion = new LinkedList<>(this.procesadores);
 		LinkedList<Tarea> tareasAsignar = new LinkedList<>(this.tareas.values());
 		backtracking(new LinkedList<>(this.procesadores), mejorSolucion, 0, tareasAsignar, criticasMAX, tiempoMAX);
+		if (mejorTiempoEjecBacktracking == Integer.MAX_VALUE) return new LinkedList<>();
 		return mejorSolucion;
 	}
 
@@ -115,7 +116,6 @@ public class Servicios {
 		cantEstados++;
 		if (indexTarea == tareasAsignar.size()) {
 			int maxTiempoEjecucionActual = obtenerMaxTiempoEjecucion(solucionActual);
-			System.out.println(maxTiempoEjecucionActual < mejorTiempoEjecBacktracking);
 			if (maxTiempoEjecucionActual < mejorTiempoEjecBacktracking) {
 				mejorTiempoEjecBacktracking = maxTiempoEjecucionActual;
 				copiarSolucion(solucionActual, mejorSolucion, criticasMAX, tiempoMAX);
@@ -146,14 +146,13 @@ public class Servicios {
 
 	public void copiarSolucion(LinkedList<Procesador> solucionActual, LinkedList<Procesador> mejorSolucion, int criticasMAX, int tiempoMAX) {
 		mejorSolucion.clear();
-		mejorSolucion.addAll(solucionActual);
-		/*for (Procesador procesador : solucionActual) {
+		for (Procesador procesador : solucionActual) {
 			Procesador copia = new Procesador(procesador.getId_procesador(), procesador.getCodigo_procesador(), procesador.isEsta_refrigerado(), procesador.getAño_funcionamiento());
 			for (Tarea tarea : procesador.getTareasAsignadas()) {
 				copia.asignarTarea(tarea, criticasMAX, tiempoMAX);
 			}
 			mejorSolucion.add(copia);
-		}*/
+		}
 	}
 
 	public int getMejorTiempoEjecBacktracking() {
@@ -179,9 +178,8 @@ public class Servicios {
 			// Asigna la tareas seleccionada al procesador seleccionado.
 			boolean asignada = p.asignarTarea(t, criticasMAX, tiempoMAX);
 			if (!asignada) {
-				System.out.println("No se encontró solución valida");
 				return new LinkedList<Procesador>();
-			} 
+			}
 			// Se elimina la tarea de la lista de tareas. 
 			tareasOrdenadas.removeFirst();
 		}

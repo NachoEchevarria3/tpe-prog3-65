@@ -55,6 +55,7 @@ public class Procesador {
             if(t.getId_tarea() == tarea.getId_tarea()) {
                 tareasAsignadas.remove(t);
                 this.tiempo_ejecucion -= tarea.getTiempo_ejecucion();
+                if (tarea.isEs_critica()) cant_criticas--;
             }
         }
     }
