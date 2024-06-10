@@ -18,6 +18,8 @@ public class Servicios {
 	private LinkedList<Tarea> tareasCriticas = new LinkedList<>();
 	private LinkedList<Tarea> tareasNoCriticas = new LinkedList<>();
 	private LinkedList<Procesador> procesadores = new LinkedList<>();
+	private LinkedList<Procesador> procesadoresGreedy = new LinkedList<>();
+	private LinkedList<Procesador> procesadoresBacktraking = new LinkedList<>();
 	private int cantEstados = 0;
 	private int cantCandidatos = 0;
 	private int mejorTiempoEjecBacktracking = Integer.MAX_VALUE;
@@ -29,13 +31,14 @@ public class Servicios {
 		CSVReader reader = new CSVReader();
 		this.procesadores = reader.readProcessors(pathProcesadores);
 		this.tareas = reader.readTasks(pathTareas);
-		this.tareasCriticas = getTareasCriticas(this.tareas, true);
-		this.tareasNoCriticas = getTareasCriticas(this.tareas, false);
+		this.tareasCriticas = getTareas(this.tareas, true);
+		this.tareasNoCriticas = getTareas(this.tareas, false);
+		this.procesadoresBacktraking = copiarProcesadores(this.procesadores);
+		this.procesadoresGreedy = copiarProcesadores(this.procesadores);
 	}
 	
-	public LinkedList<Tarea> getTareasCriticas(Map<String, Tarea> listaTareas, boolean esCritica) {
+	public LinkedList<Tarea> getTareas(Map<String, Tarea> listaTareas, boolean esCritica) {
 		LinkedList<Tarea> resultado = new LinkedList<>();
-
 		if (esCritica) {
 			for (String id : listaTareas.keySet()) {
 				Tarea tarea = listaTareas.get(id);
@@ -51,7 +54,6 @@ public class Servicios {
 				}
 			}
 		}
-
 		return resultado;
 	}
 
@@ -80,14 +82,12 @@ public class Servicios {
 			System.out.println("La prioridad inferior debe ser menor que la prioridad superior");
 			return resultado;
 		}
-
 		for (String id : tareas.keySet()) {
 			Tarea tarea = tareas.get(id);
 			if (tarea.getNivel_prioridad() >= prioridadInferior && tarea.getNivel_prioridad() <= prioridadSuperior) {
 				resultado.add(tarea);
 			}
 		}
-
 		return resultado;
 	}
 
@@ -105,12 +105,12 @@ public class Servicios {
 	*/
 
 	public LinkedList<Procesador> backtracking(int criticasMAX, int tiempoMAX) {
-		LinkedList<Procesador> mejorSolucion = new LinkedList<>(this.procesadores);
+		LinkedList<Procesador> mejorSolucion = new LinkedList<>();
 		LinkedList<Tarea> tareasAsignar = new LinkedList<>(this.tareas.values());
-		backtracking(new LinkedList<>(this.procesadores), mejorSolucion, 0, tareasAsignar, criticasMAX, tiempoMAX);
+		backtracking(procesadoresBacktraking, mejorSolucion, 0, tareasAsignar, criticasMAX, tiempoMAX);
 		if (mejorTiempoEjecBacktracking == Integer.MAX_VALUE) return new LinkedList<>();
 		return mejorSolucion;
-	}
+	}	
 
 	private void backtracking(LinkedList<Procesador> solucionActual, LinkedList<Procesador> mejorSolucion, int indexTarea, LinkedList<Tarea> tareasAsignar, int criticasMAX, int tiempoMAX) {
 		cantEstados++;
@@ -174,7 +174,7 @@ public class Servicios {
 			// Selecciona primer tarea.
 			Tarea t = tareasOrdenadas.getFirst();
 			// Selecciona procesador con menor tiempo de ejecución acumulado.
-			Procesador p = this.seleccionarProcesador();
+			Procesador p = seleccionarProcesador(procesadoresGreedy);
 			// Asigna la tareas seleccionada al procesador seleccionado.
 			boolean asignada = p.asignarTarea(t, criticasMAX, tiempoMAX);
 			if (!asignada) {
@@ -184,10 +184,10 @@ public class Servicios {
 			tareasOrdenadas.removeFirst();
 		}
 
-		return this.procesadores;
+		return procesadoresGreedy;
 	}
 
-	public Procesador seleccionarProcesador() {
+	public Procesador seleccionarProcesador(LinkedList<Procesador> procesadores) {
 		// Se obtiene el primer procesador.
 		Procesador resultado = procesadores.getFirst();
 		for (Procesador p : procesadores) {
@@ -203,7 +203,7 @@ public class Servicios {
 	}
 
 	public int getMejorTiempoEjecGreedy() {
-		return obtenerMaxTiempoEjecucion(this.procesadores);
+		return obtenerMaxTiempoEjecucion(procesadoresGreedy);
 	}
 
 	public int getCantCandidatos() {
@@ -214,4 +214,11 @@ public class Servicios {
 		return cantEstados;
 	}
 
+	private LinkedList<Procesador> copiarProcesadores(LinkedList<Procesador> original) {
+		LinkedList<Procesador> copia = new LinkedList<>();
+		for (Procesador p : original) {
+			copia.add(new Procesador(p.getId_procesador(), p.getCodigo_procesador(), p.isEsta_refrigerado(), p.getAño_funcionamiento()));
+		}
+		return copia;
+	}
 }

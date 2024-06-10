@@ -74,7 +74,7 @@ public class Procesador {
 
     @Override
     public String toString() {
-        return this.id_procesador;
+        return this.getId_procesador() + " - Tareas asignadas: " + this.getTareasAsignadas() + " - Tiempo de ejecución: " + this.getTiempo_ejecucion();
     }
 }
    
