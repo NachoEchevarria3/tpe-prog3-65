@@ -91,6 +91,7 @@ public class Servicios {
 		return resultado;
 	}
 
+	/* Segunda parte */
 	private LinkedList<Tarea> ordenarTareas() {
 		LinkedList<Tarea> listaTareas = new LinkedList<>();
 		for (Map.Entry<String, Tarea> tarea : tareas.entrySet()) {
@@ -100,8 +101,20 @@ public class Servicios {
 		return listaTareas;
 	}
 
+	private LinkedList<Procesador> copiarProcesadores(LinkedList<Procesador> original) {
+		LinkedList<Procesador> copia = new LinkedList<>();
+		for (Procesador p : original) {
+			copia.add(new Procesador(p.getId_procesador(), p.getCodigo_procesador(), p.isEsta_refrigerado(), p.getAño_funcionamiento()));
+		}
+		return copia;
+	}
+
 	/* 
 		BACKTRACKING
+		En esta estrategia se exploran todas las posibles soluciones, hay una lista de procesadores(mejorSolucion)
+		que va cambiando según el tiempo de ejecución total quedandose con la mejor solución hasta el momento,
+		además la resolución lleva una cuenta de los estados generados por la estrategia. Esta estrategia es más costosa pero
+		devuelve siempre la mejor solución.
 	*/
 
 	public LinkedList<Procesador> backtracking(int criticasMAX, int tiempoMAX) {
@@ -159,6 +172,10 @@ public class Servicios {
 		return mejorTiempoEjecBacktracking;
 	}
 
+	public int getCantEstados() {
+		return cantEstados;
+	}
+
 	/* 
 		GREEDY
 		La estrategia que pensamos para la solución Greedy del problema fue la siguiente:
@@ -208,17 +225,5 @@ public class Servicios {
 
 	public int getCantCandidatos() {
 		return cantCandidatos;
-	}
-
-	public int getCantEstados() {
-		return cantEstados;
-	}
-
-	private LinkedList<Procesador> copiarProcesadores(LinkedList<Procesador> original) {
-		LinkedList<Procesador> copia = new LinkedList<>();
-		for (Procesador p : original) {
-			copia.add(new Procesador(p.getId_procesador(), p.getCodigo_procesador(), p.isEsta_refrigerado(), p.getAño_funcionamiento()));
-		}
-		return copia;
 	}
 }
