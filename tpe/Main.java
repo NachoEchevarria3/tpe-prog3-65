@@ -5,7 +5,7 @@ import java.util.LinkedList;
 public class Main {
 	//Poner las condiciones que se requieran
 	private static final int criticasMAX = 2;
-	private static final int tiempoMAX = 120;
+	private static final int tiempoMAX = 1000;
 	public static void main(String args[]) {
 
 		Servicios servicios = new Servicios("./tpe/datasets/Procesadores.csv", "./tpe/datasets/Tareas.csv");
