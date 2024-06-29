@@ -1,7 +1,5 @@
 package tpe;
 
-import java.util.LinkedList;
-
 public class Main {
 	//Poner las condiciones que se requieran
 	private static final int criticasMAX = 2;
@@ -9,25 +7,25 @@ public class Main {
 	public static void main(String args[]) {
 
 		Servicios servicios = new Servicios("./tpe/datasets/Procesadores.csv", "./tpe/datasets/Tareas.csv");
-		LinkedList<Procesador> greedy = servicios.greedy(criticasMAX, tiempoMAX);
-		LinkedList<Procesador> backtracking = servicios.backtracking(criticasMAX, tiempoMAX);
+		Solucion greedy = servicios.greedy(criticasMAX, tiempoMAX);
+		Solucion backtracking = servicios.backtracking(criticasMAX, tiempoMAX);
 
-		if (backtracking.size() > 0) {
+		if (backtracking.getProcesadores().size() > 0) {
 			System.out.println("Backtracking:");
-			for (Procesador procesador : backtracking) {
+			for (Procesador procesador : backtracking.getProcesadores()) {
 				System.out.println(procesador);
 			}
-			System.out.println("Tiempo máximo de ejecución: " + servicios.getMejorTiempoEjecBacktracking());
+			System.out.println("Tiempo máximo de ejecución: " + backtracking.calcularTiempoEjecucion());
 			System.out.println("Métrica para analizar el costo de la solución: " + servicios.getCantEstados());
 		} else {
 			System.out.println("Backtracking: No hay solución");
 		}
-		if(greedy.size() > 0) {
+		if(greedy.getProcesadores().size() > 0) {
 			System.out.println("Greedy:");
-			for (Procesador procesador : greedy) {
+			for (Procesador procesador : greedy.getProcesadores()) {
 				System.out.println(procesador);
 			}
-			System.out.println("Tiempo máximo de ejecución: " + servicios.getMejorTiempoEjecGreedy());
+			System.out.println("Tiempo máximo de ejecución: " + greedy.calcularTiempoEjecucion());
 			System.out.println("Métrica para analizar el costo de la solución: " + servicios.getCantCandidatos());
 		} else {
 			System.out.println("Greedy: No hay solución");
