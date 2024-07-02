@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 import tpe.utils.CSVReader;
 
@@ -15,6 +17,7 @@ import tpe.utils.CSVReader;
  */
 public class Servicios {
 	private Map<String, Tarea> tareas = new HashMap<>();
+	private TreeMap<Integer, List<Tarea>> tareasPorPrioridad = new TreeMap<>();
 	private LinkedList<Tarea> tareasCriticas = new LinkedList<>();
 	private LinkedList<Tarea> tareasNoCriticas = new LinkedList<>();
 	private LinkedList<Procesador> procesadores = new LinkedList<>();
@@ -30,6 +33,13 @@ public class Servicios {
 		CSVReader reader = new CSVReader();
 		this.procesadores = reader.readProcessors(pathProcesadores);
 		this.tareas = reader.readTasks(pathTareas);
+		for (Tarea tarea : getListaTareas(this.tareas)) {
+			int prioridad = tarea.getNivel_prioridad();
+			if (!this.tareasPorPrioridad.containsKey(prioridad)) {
+				this.tareasPorPrioridad.put(prioridad, new LinkedList<>());
+			}
+			this.tareasPorPrioridad.get(prioridad).add(tarea);
+		}
 		this.tareasCriticas = getTareas(this.tareas, true);
 		this.tareasNoCriticas = getTareas(this.tareas, false);
 		this.solucionBacktracking = new Solucion(copiarProcesadores(procesadores));
@@ -56,6 +66,16 @@ public class Servicios {
 		return resultado;
 	}
 
+	public List<Tarea> getListaTareas(Map<String, Tarea> listaTareas) {
+		List<Tarea> resultado = new LinkedList<>();
+		for (String id : listaTareas.keySet()) {
+			Tarea tarea = listaTareas.get(id);
+			resultado.add(tarea);
+		}
+
+		return resultado;
+	}
+
 	/*
      Complejidad computacional: O(1)
     */
@@ -65,7 +85,7 @@ public class Servicios {
     
     /*
 	  Complejidad computacional: O(1)
-     */
+    */
 	public List<Tarea> servicio2(boolean esCritica) {
 		if (esCritica) return this.tareasCriticas;
 		return this.tareasNoCriticas;
@@ -73,7 +93,7 @@ public class Servicios {
 
     /*
       Complejidad computacional: O(n)
-     */
+    */
 	public List<Tarea> servicio3(int prioridadInferior, int prioridadSuperior) {
 		List<Tarea> resultado = new LinkedList<>();
 
@@ -81,12 +101,12 @@ public class Servicios {
 			System.out.println("La prioridad inferior debe ser menor que la prioridad superior");
 			return resultado;
 		}
-		for (String id : tareas.keySet()) {
-			Tarea tarea = tareas.get(id);
-			if (tarea.getNivel_prioridad() >= prioridadInferior && tarea.getNivel_prioridad() <= prioridadSuperior) {
-				resultado.add(tarea);
-			}
-		}
+
+		NavigableMap<Integer, List<Tarea>> subMap = this.tareasPorPrioridad.subMap(prioridadInferior, true, prioridadSuperior, true);
+        for (List<Tarea> tareasConPrioridad : subMap.values()) {
+            resultado.addAll(tareasConPrioridad);
+        }
+
 		return resultado;
 	}
 
@@ -139,7 +159,9 @@ public class Servicios {
 		for (Procesador procesador : solucionActual.getProcesadores()) {
 			boolean asignada = procesador.asignarTarea(tareaActual, criticasMAX, tiempoMAX);
 			if (asignada) {
-				backtracking(solucionActual, indexTarea + 1, tareasAsignar, criticasMAX, tiempoMAX);
+				if (solucionActual.calcularTiempoEjecucion() < solucionBacktracking.getTiempoEjecucion()) {
+					backtracking(solucionActual, indexTarea + 1, tareasAsignar, criticasMAX, tiempoMAX);
+				}
 				procesador.eliminarTarea(tareaActual);
 			}
 		}
@@ -162,7 +184,7 @@ public class Servicios {
 		LinkedList<Tarea> tareasOrdenadas = this.ordenarTareas();
 		while (!tareasOrdenadas.isEmpty()) {
 			Tarea t = tareasOrdenadas.getFirst();
-			Procesador p = seleccionarProcesador(solucionGreedy.getProcesadores());
+			Procesador p = seleccionarProcesador(solucionGreedy.getProcesadores(), t, criticasMAX, tiempoMAX);
 			boolean asignada = p.asignarTarea(t, criticasMAX, tiempoMAX);
 			if (!asignada) {
 				return new Solucion();
@@ -172,14 +194,14 @@ public class Servicios {
 		return solucionGreedy;
 	}
 
-	public Procesador seleccionarProcesador(LinkedList<Procesador> procesadores) {
+	public Procesador seleccionarProcesador(LinkedList<Procesador> procesadores, Tarea t, int criticasMAX, int tiempoMAX) {
 		// Se obtiene el primer procesador.
 		Procesador resultado = procesadores.getFirst();
 		for (Procesador p : procesadores) {
 			cantCandidatos++;
 			// Si el tiempo de  ejecucion del actual procesador es menor al del resultado
 			// resultado se vuelve procesador actual.
-			if (p.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) {
+			if ((p.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) && p.esValido(t, criticasMAX, tiempoMAX)) {
 				resultado = p;
 			}
 		}

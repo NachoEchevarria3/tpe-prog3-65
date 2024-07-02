@@ -1,4 +1,9 @@
-T1;Tarea1;90;true;92
-T2;Tarea1;50;false;92
-T3;Tarea1;100;true;92
-T4;Tarea1;70;false;92
+T1;Tarea1;90;false;92
+T2;Tarea2;50;true;31
+T3;Tarea3;80;true;70
+T4;Tarea4;60;true;58
+T5;Tarea5;70;true;1
+T6;Tarea6;70;true;31
+T7;Tarea7;60;true;31
+T8;Tarea8;40;true;31
+T9;Tarea9;30;false;31
