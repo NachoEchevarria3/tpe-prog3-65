@@ -5,6 +5,8 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NavigableMap;
+import java.util.TreeMap;
 
 import tpe.utils.CSVReader;
 
@@ -15,14 +17,14 @@ import tpe.utils.CSVReader;
  */
 public class Servicios {
 	private Map<String, Tarea> tareas = new HashMap<>();
+	private TreeMap<Integer, List<Tarea>> tareasPorPrioridad = new TreeMap<>();
 	private LinkedList<Tarea> tareasCriticas = new LinkedList<>();
 	private LinkedList<Tarea> tareasNoCriticas = new LinkedList<>();
 	private LinkedList<Procesador> procesadores = new LinkedList<>();
-	private LinkedList<Procesador> procesadoresGreedy = new LinkedList<>();
-	private LinkedList<Procesador> procesadoresBacktraking = new LinkedList<>();
+	private Solucion solucionBacktracking;
+	private Solucion solucionGreedy;
 	private int cantEstados = 0;
 	private int cantCandidatos = 0;
-	private int mejorTiempoEjecBacktracking = Integer.MAX_VALUE;
 
 	/*
      Complejidad computacional: O(n)
@@ -31,10 +33,17 @@ public class Servicios {
 		CSVReader reader = new CSVReader();
 		this.procesadores = reader.readProcessors(pathProcesadores);
 		this.tareas = reader.readTasks(pathTareas);
+		for (Tarea tarea : getListaTareas(this.tareas)) {
+			int prioridad = tarea.getNivel_prioridad();
+			if (!this.tareasPorPrioridad.containsKey(prioridad)) {
+				this.tareasPorPrioridad.put(prioridad, new LinkedList<>());
+			}
+			this.tareasPorPrioridad.get(prioridad).add(tarea);
+		}
 		this.tareasCriticas = getTareas(this.tareas, true);
 		this.tareasNoCriticas = getTareas(this.tareas, false);
-		this.procesadoresBacktraking = copiarProcesadores(this.procesadores);
-		this.procesadoresGreedy = copiarProcesadores(this.procesadores);
+		this.solucionBacktracking = new Solucion(copiarProcesadores(procesadores));
+		this.solucionGreedy = new Solucion(copiarProcesadores(procesadores));
 	}
 	
 	public LinkedList<Tarea> getTareas(Map<String, Tarea> listaTareas, boolean esCritica) {
@@ -57,6 +66,16 @@ public class Servicios {
 		return resultado;
 	}
 
+	public List<Tarea> getListaTareas(Map<String, Tarea> listaTareas) {
+		List<Tarea> resultado = new LinkedList<>();
+		for (String id : listaTareas.keySet()) {
+			Tarea tarea = listaTareas.get(id);
+			resultado.add(tarea);
+		}
+
+		return resultado;
+	}
+
 	/*
      Complejidad computacional: O(1)
     */
@@ -66,7 +85,7 @@ public class Servicios {
     
     /*
 	  Complejidad computacional: O(1)
-     */
+    */
 	public List<Tarea> servicio2(boolean esCritica) {
 		if (esCritica) return this.tareasCriticas;
 		return this.tareasNoCriticas;
@@ -74,7 +93,7 @@ public class Servicios {
 
     /*
       Complejidad computacional: O(n)
-     */
+    */
 	public List<Tarea> servicio3(int prioridadInferior, int prioridadSuperior) {
 		List<Tarea> resultado = new LinkedList<>();
 
@@ -82,12 +101,12 @@ public class Servicios {
 			System.out.println("La prioridad inferior debe ser menor que la prioridad superior");
 			return resultado;
 		}
-		for (String id : tareas.keySet()) {
-			Tarea tarea = tareas.get(id);
-			if (tarea.getNivel_prioridad() >= prioridadInferior && tarea.getNivel_prioridad() <= prioridadSuperior) {
-				resultado.add(tarea);
-			}
-		}
+
+		NavigableMap<Integer, List<Tarea>> subMap = this.tareasPorPrioridad.subMap(prioridadInferior, true, prioridadSuperior, true);
+        for (List<Tarea> tareasConPrioridad : subMap.values()) {
+            resultado.addAll(tareasConPrioridad);
+        }
+
 		return resultado;
 	}
 
@@ -117,59 +136,36 @@ public class Servicios {
 		devuelve siempre la mejor solución.
 	*/
 
-	public LinkedList<Procesador> backtracking(int criticasMAX, int tiempoMAX) {
-		LinkedList<Procesador> mejorSolucion = new LinkedList<>();
+	public Solucion backtracking(int criticasMAX, int tiempoMAX) {
+		Solucion solucionActual = new Solucion(copiarProcesadores(procesadores));
 		LinkedList<Tarea> tareasAsignar = new LinkedList<>(this.tareas.values());
-		backtracking(procesadoresBacktraking, mejorSolucion, 0, tareasAsignar, criticasMAX, tiempoMAX);
-		if (mejorTiempoEjecBacktracking == Integer.MAX_VALUE) return new LinkedList<>();
-		return mejorSolucion;
-	}	
+		backtracking(solucionActual, 0, tareasAsignar, criticasMAX, tiempoMAX);
+		if (solucionBacktracking.getTiempoEjecucion() == Integer.MAX_VALUE) return new Solucion();
+		return solucionBacktracking;
+	}
 
-	private void backtracking(LinkedList<Procesador> solucionActual, LinkedList<Procesador> mejorSolucion, int indexTarea, LinkedList<Tarea> tareasAsignar, int criticasMAX, int tiempoMAX) {
+	private void backtracking(Solucion solucionActual, int indexTarea, LinkedList<Tarea> tareasAsignar, int criticasMAX, int tiempoMAX) {
 		cantEstados++;
 		if (indexTarea == tareasAsignar.size()) {
-			int maxTiempoEjecucionActual = obtenerMaxTiempoEjecucion(solucionActual);
-			if (maxTiempoEjecucionActual < mejorTiempoEjecBacktracking) {
-				mejorTiempoEjecBacktracking = maxTiempoEjecucionActual;
-				copiarSolucion(solucionActual, mejorSolucion, criticasMAX, tiempoMAX);
+			int tiempoEjecucionActual = solucionActual.calcularTiempoEjecucion();
+			if (tiempoEjecucionActual < solucionBacktracking.getTiempoEjecucion()) {
+				solucionBacktracking.setTiempoEjecucion(tiempoEjecucionActual);
+				solucionBacktracking.setProcesadores(solucionActual.getProcesadores(), criticasMAX, tiempoMAX);
 			}
 			return;
 		}
 
 		Tarea tareaActual = tareasAsignar.get(indexTarea);
-		for (Procesador procesador : solucionActual) {
+		for (Procesador procesador : solucionActual.getProcesadores()) {
 			boolean asignada = procesador.asignarTarea(tareaActual, criticasMAX, tiempoMAX);
 			if (asignada) {
-				backtracking(solucionActual, mejorSolucion, indexTarea + 1, tareasAsignar, criticasMAX, tiempoMAX);
+				if (solucionActual.calcularTiempoEjecucion() < solucionBacktracking.getTiempoEjecucion()) {
+					backtracking(solucionActual, indexTarea + 1, tareasAsignar, criticasMAX, tiempoMAX);
+				}
 				procesador.eliminarTarea(tareaActual);
 			}
 		}
 		return;
-	}
-
-	private int obtenerMaxTiempoEjecucion(LinkedList<Procesador> procesadores) {
-		int maxTiempo = 0;
-		for (Procesador procesador : procesadores) {
-			// Se queda con el tiempo de ejecución del Procesador
-			// con mayor tiempo de ejecución
-			maxTiempo = Math.max(maxTiempo, procesador.getTiempo_ejecucion());
-		}
-		return maxTiempo;
-	}
-
-	public void copiarSolucion(LinkedList<Procesador> solucionActual, LinkedList<Procesador> mejorSolucion, int criticasMAX, int tiempoMAX) {
-		mejorSolucion.clear();
-		for (Procesador procesador : solucionActual) {
-			Procesador copia = new Procesador(procesador.getId_procesador(), procesador.getCodigo_procesador(), procesador.isEsta_refrigerado(), procesador.getAño_funcionamiento());
-			for (Tarea tarea : procesador.getTareasAsignadas()) {
-				copia.asignarTarea(tarea, criticasMAX, tiempoMAX);
-			}
-			mejorSolucion.add(copia);
-		}
-	}
-
-	public int getMejorTiempoEjecBacktracking() {
-		return mejorTiempoEjecBacktracking;
 	}
 
 	public int getCantEstados() {
@@ -184,43 +180,33 @@ public class Servicios {
 			en ese momento. En la primer iteración, se van a llenar todos los procesadores
 			con al menos una tarea en caso de que haya más tareas que procesadores.
 	*/
-	public LinkedList<Procesador> greedy(int criticasMAX, int tiempoMAX) {
-		// Ordena Tareas por tiempo de ejecución de mayor a menor.
+	public Solucion greedy(int criticasMAX, int tiempoMAX) {
 		LinkedList<Tarea> tareasOrdenadas = this.ordenarTareas();
 		while (!tareasOrdenadas.isEmpty()) {
-			// Selecciona primer tarea.
 			Tarea t = tareasOrdenadas.getFirst();
-			// Selecciona procesador con menor tiempo de ejecución acumulado.
-			Procesador p = seleccionarProcesador(procesadoresGreedy);
-			// Asigna la tareas seleccionada al procesador seleccionado.
+			Procesador p = seleccionarProcesador(solucionGreedy.getProcesadores(), t, criticasMAX, tiempoMAX);
 			boolean asignada = p.asignarTarea(t, criticasMAX, tiempoMAX);
 			if (!asignada) {
-				return new LinkedList<Procesador>();
+				return new Solucion();
 			}
-			// Se elimina la tarea de la lista de tareas. 
 			tareasOrdenadas.removeFirst();
 		}
-
-		return procesadoresGreedy;
+		return solucionGreedy;
 	}
 
-	public Procesador seleccionarProcesador(LinkedList<Procesador> procesadores) {
+	public Procesador seleccionarProcesador(LinkedList<Procesador> procesadores, Tarea t, int criticasMAX, int tiempoMAX) {
 		// Se obtiene el primer procesador.
 		Procesador resultado = procesadores.getFirst();
 		for (Procesador p : procesadores) {
 			cantCandidatos++;
 			// Si el tiempo de  ejecucion del actual procesador es menor al del resultado
 			// resultado se vuelve procesador actual.
-			if (p.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) {
+			if ((p.getTiempo_ejecucion() < resultado.getTiempo_ejecucion()) && p.esValido(t, criticasMAX, tiempoMAX)) {
 				resultado = p;
 			}
 		}
 
 		return resultado;
-	}
-
-	public int getMejorTiempoEjecGreedy() {
-		return obtenerMaxTiempoEjecucion(procesadoresGreedy);
 	}
 
 	public int getCantCandidatos() {

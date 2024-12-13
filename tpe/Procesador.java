@@ -49,6 +49,12 @@ public class Procesador {
         return true;
     }
 
+    public boolean esValido(Tarea tarea, int criticasMAX, int tiempoMAX) {
+        if (tarea.isEs_critica() && this.cant_criticas == criticasMAX) return false;
+        if (!this.isEsta_refrigerado() && (this.getTiempo_ejecucion() + tarea.getTiempo_ejecucion()) > tiempoMAX) return false;
+        return true;
+    }
+
     public void eliminarTarea(Tarea tarea) {
         if (tareasAsignadas.isEmpty()) return;
         for (Tarea t : tareasAsignadas) {
